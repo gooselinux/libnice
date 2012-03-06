@@ -1,0 +1,52 @@
+diff --git a/socket/tcp-turn.c b/socket/tcp-turn.c
+index 0d0dc53..ff3bf48 100644
+--- a/socket/tcp-turn.c
++++ b/socket/tcp-turn.c
+@@ -136,7 +136,8 @@ socket_recv (NiceSocket *sock, NiceAddress *from, guint len, gchar *buf)
+       return 0;
+ 
+     if (priv->compatibility == NICE_TURN_SOCKET_COMPATIBILITY_DRAFT9) {
+-      guint16 magic = ntohs (*(guint16*)priv->recv_buf);
++      void *buf = priv->recv_buf;
++      guint16 magic = ntohs (*(guint16*)buf);
+       guint16 packetlen = ntohs (*(guint16*)(priv->recv_buf + 2));
+ 
+       if (magic < 0x4000) {
+@@ -148,7 +149,8 @@ socket_recv (NiceSocket *sock, NiceAddress *from, guint len, gchar *buf)
+       }
+     }
+     else if (priv->compatibility == NICE_TURN_SOCKET_COMPATIBILITY_GOOGLE) {
+-      guint len = ntohs (*(guint16*)priv->recv_buf);
++      void *buf = priv->recv_buf;
++      guint len = ntohs (*(guint16*)buf);
+       priv->expecting_len = len;
+       priv->recv_buf_len = 0;
+     }
+diff --git a/stun/usages/ice.c b/stun/usages/ice.c
+index 17202f6..ccc1527 100644
+--- a/stun/usages/ice.c
++++ b/stun/usages/ice.c
+@@ -138,9 +138,10 @@ StunUsageIceReturn stun_usage_ice_conncheck_process (StunMessage *msg,
+ 
+   if (compatibility == STUN_USAGE_ICE_COMPATIBILITY_MSN) {
+     StunTransactionId transid;
++    void *ptransid = transid;
+     uint32_t magic_cookie;
+     stun_message_id (msg, transid);
+-    magic_cookie = *((uint32_t *) transid);
++    magic_cookie = *((uint32_t *) ptransid);
+ 
+     val = stun_message_find_xor_addr_full (msg,
+         STUN_ATTRIBUTE_XOR_MAPPED_ADDRESS, addr, addrlen, htonl (magic_cookie));
+@@ -257,9 +258,10 @@ stun_usage_ice_conncheck_create_reply (StunAgent *agent, StunMessage *req,
+   }
+   if (compatibility == STUN_USAGE_ICE_COMPATIBILITY_MSN) {
+     StunTransactionId transid;
++    void *ptransid = transid;
+     uint32_t magic_cookie;
+     stun_message_id (msg, transid);
+-    magic_cookie = *((uint32_t *) transid);
++    magic_cookie = *((uint32_t *) ptransid);
+ 
+     val = stun_message_append_xor_addr_full (msg, STUN_ATTRIBUTE_XOR_MAPPED_ADDRESS,
+         src, srclen, htonl (magic_cookie));
